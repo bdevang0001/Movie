@@ -10,88 +10,111 @@
 import SwiftUI
 
 struct MainView: View {
-    let color = Color.clear
+    @State private var selectedTab = 0
+
     init() {
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = .clear
-        // your tab bar bg
-     
-        // Selected (active tab)
+        appearance.backgroundColor = UIColor(
+            red: 32/255,
+            green: 38/255,
+            blue: 45/255,
+            alpha: 0.98
+        )
         appearance.shadowColor = .clear
         appearance.shadowImage = UIImage()
-        
-        appearance.stackedLayoutAppearance.selected.iconColor =  UIColor(
+
+        appearance.stackedLayoutAppearance.selected.iconColor = UIColor(
             red: 32/255,
-            green: 96/255,
-            blue: 140/255,
+            green: 169/255,
+            blue: 255/255,
             alpha: 1.0
         )
 
         appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
             .foregroundColor: UIColor(
                 red: 32/255,
-                green: 96/255,
-                blue: 140/255,
+                green: 169/255,
+                blue: 255/255,
                 alpha: 1.0
             )
         ]
-     
-        // Unselected (inactive tabs)
-        appearance.stackedLayoutAppearance.normal.iconColor = UIColor.gray
+
+        appearance.stackedLayoutAppearance.normal.iconColor = UIColor(
+            red: 124/255,
+            green: 129/255,
+            blue: 138/255,
+            alpha: 1.0
+        )
         appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
             .foregroundColor: UIColor(
-                red: 95/255,
-                green: 96/255,
-                blue: 101/255,
+                red: 124/255,
+                green: 129/255,
+                blue: 138/255,
                 alpha: 1.0
             )
         ]
-     
+
         UITabBar.appearance().standardAppearance = appearance
         UITabBar.appearance().scrollEdgeAppearance = appearance
     }
     var body: some View {
-        TabView {
-            Home( )
+        TabView(selection: $selectedTab) {
+            Home()
+                .tag(0)
                 .tabItem {
                     Label("Home", systemImage: "house.fill")
                 }
-            SearchView( )
+
+            SearchView(selectedTab: $selectedTab)
+                .tag(1)
                 .tabItem {
                     Label("Search", systemImage: "magnifyingglass")
                 }
-            WatchList( )
-                .tabItem {
-                    Label("watchlist", systemImage: "bookmark.fill")
-                }
 
-        }.tint(.black)
+            WatchList()
+                .tag(2)
+                .tabItem {
+                    Label("Watch list", systemImage: "bookmark")
+                }
+        }
+        .tint(Color.movieAccent)
     }
 }
 
 #Preview {
     MainView()
-        .background(Color.red)
 }
 
 struct TabBackground<Content: View>: View {
     let content: Content
- 
+
     init(@ViewBuilder content: () -> Content) {
         self.content = content()
     }
- 
+
     var body: some View {
         ZStack {
-            //Color.blue.ignoresSafeArea()
             Color(
-                red: 36/255,
-                green: 42/255,
-                blue: 50/255
+                red: 24/255,
+                green: 26/255,
+                blue: 31/255
             ).ignoresSafeArea()
             content
         }
     }
 }
 
+extension Color {
+    static let moviePanel = Color(
+        red: 38/255,
+        green: 45/255,
+        blue: 56/255
+    )
+
+    static let movieAccent = Color(
+        red: 17/255,
+        green: 166/255,
+        blue: 255/255
+    )
+}

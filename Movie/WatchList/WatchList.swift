@@ -20,5 +20,5 @@ struct WatchList: View {
 }
 
 #Preview {
-    SearchView()
+    WatchList()
 }
