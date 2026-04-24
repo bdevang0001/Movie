@@ -11,7 +11,11 @@ import SwiftUI
 
 struct WatchList: View {
     var body: some View {
-        Text("Hello, watchlist")
+        TabBackground {
+            ZStack {
+                Text("Hello, watchlist")
+            }
+        }
     }
 }
 

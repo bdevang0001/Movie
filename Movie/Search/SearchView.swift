@@ -9,7 +9,11 @@ import SwiftUI
 
 struct SearchView: View {
     var body: some View {
-        Text("Hello, Search")
+        TabBackground {
+            ZStack {
+                Text("Hello, World!")
+            }
+        }
     }
 }
 
