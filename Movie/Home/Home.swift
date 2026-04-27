@@ -8,9 +8,11 @@
 import SwiftUI
 
 struct Home: View {
+    @Binding var selectedTab: Int
     @State private var searchText = ""
     @State private var selectedCategory = "Now playing"
-    @State private var selectedMovie: MovieItem?
+    @State private var tmdbConfigurationLoaded = false
+    @State private var popularMovies: [MovieItem] = []
 
     private let featuredMovies: [MovieItem] = [
         MovieItem(title: "Jurassic World", rating: "7.8", genre: "Sci-Fi", year: "2022", duration: "147 Minutes", imageName: "capsicum", backdropName: "capsicum", overview: "A new generation faces prehistoric danger when dinosaurs once again disrupt the balance between science and nature."),
@@ -54,7 +56,17 @@ struct Home: View {
     ]
 
     private var visibleMovies: [MovieItem] {
-        sections[selectedCategory] ?? []
+        if selectedCategory == "Popular", !popularMovies.isEmpty {
+            return popularMovies
+        }
+        return sections[selectedCategory] ?? []
+    }
+
+    private var activeFeaturedMovies: [MovieItem] {
+        if !popularMovies.isEmpty {
+            return Array(popularMovies.prefix(3))
+        }
+        return featuredMovies
     }
 
     private let gridColumns = [
@@ -64,38 +76,44 @@ struct Home: View {
     ]
 
     var body: some View {
-        TabBackground {
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 24) {
-                    Text("Home")
-                        .font(.system(size: 34, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.9))
+        NavigationStack {
+            TabBackground {
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 24) {
+                        Text("Home")
+                            .font(.system(size: 34, weight: .semibold, design: .rounded))
+                            .foregroundStyle(.white.opacity(0.9))
 
-                    VStack(alignment: .leading, spacing: 18) {
-                        Text("What do you want to watch?")
-                            .font(.system(size: 30, weight: .bold, design: .rounded))
-                            .foregroundStyle(.white)
+                        VStack(alignment: .leading, spacing: 18) {
+                            Text("What do you want to watch?")
+                                .font(.system(size: 30, weight: .bold, design: .rounded))
+                                .foregroundStyle(.white)
 
-                        searchBar
-                        featuredCarousel
-                        FancySegmentControl(selectedTab: $selectedCategory)
-                        posterGrid
+                            searchBar
+                            featuredCarousel
+                            FancySegmentControl(selectedTab: $selectedCategory)
+                            posterGrid
+                        }
+                        .padding(.horizontal, 24)
+                        .padding(.top, 26)
+                        .padding(.bottom, 28)
+                        .background(
+                            RoundedRectangle(cornerRadius: 34, style: .continuous)
+                                .fill(Color.moviePanel)
+                        )
                     }
-                    .padding(.horizontal, 24)
-                    .padding(.top, 26)
-                    .padding(.bottom, 28)
-                    .background(
-                        RoundedRectangle(cornerRadius: 34, style: .continuous)
-                            .fill(Color.moviePanel)
-                    )
+                    .padding(.horizontal, 18)
+                    .padding(.top, 10)
+                    .padding(.bottom, 30)
                 }
-                .padding(.horizontal, 18)
-                .padding(.top, 10)
-                .padding(.bottom, 30)
             }
         }
-        .fullScreenCover(item: $selectedMovie) { movie in
-            DetailView(movie: movie)
+        .navigationBarHidden(true)
+        .task {
+            guard !tmdbConfigurationLoaded else { return }
+            tmdbConfigurationLoaded = true
+            await loadTMDBConfiguration()
+            await loadPopularMovies()
         }
     }
 
@@ -142,9 +160,9 @@ struct Home: View {
     private var featuredCarousel: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 22) {
-                ForEach(Array(featuredMovies.enumerated()), id: \.element.id) { index, movie in
-                    Button {
-                        selectedMovie = movie
+                ForEach(Array(activeFeaturedMovies.enumerated()), id: \.element.id) { index, movie in
+                    NavigationLink {
+                        DetailView(movie: movie, selectedAppTab: $selectedTab)
                     } label: {
                         FeaturedMovieCard(movie: movie, rank: index + 1)
                     }
@@ -161,13 +179,11 @@ struct Home: View {
     private var posterGrid: some View {
         LazyVGrid(columns: gridColumns, spacing: 18) {
             ForEach(visibleMovies) { movie in
-                Button {
-                    selectedMovie = movie
+                NavigationLink {
+                    DetailView(movie: movie, selectedAppTab: $selectedTab)
                 } label: {
                     VStack(alignment: .leading, spacing: 8) {
-                        Image(movie.imageName)
-                            .resizable()
-                            .scaledToFill()
+                        MoviePosterView(movie: movie)
                             .frame(width: 96, height: 132)
                             .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                             .overlay(
@@ -189,6 +205,33 @@ struct Home: View {
         }
         .padding(.top, 6)
     }
+
+    private func loadTMDBConfiguration() async {
+        do {
+            popularMovies = try await TMDBAPI.fetchPopularMovies()
+            print("Loaded TMDB popular movies: \(popularMovies.count)")
+        } catch {
+            print("TMDB configuration request failed: \(error.localizedDescription)")
+        }
+    }
+    
+    private func loadPopularMovies() async {
+        Task {
+            do {
+                let response = try await TMDBService().fetchNowPlaying()
+
+                print("Page: \(response.page)")
+                print("Movies:")
+
+                for movie in response.results {
+                    print("- \(movie.title) (\(movie.releaseDate))")
+                }
+
+            } catch {
+                print("Error:", error)
+            }
+        }
+    }
 }
 
 private struct FeaturedMovieCard: View {
@@ -197,9 +240,7 @@ private struct FeaturedMovieCard: View {
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            Image(movie.imageName)
-                .resizable()
-                .scaledToFill()
+            MoviePosterView(movie: movie)
                 .frame(width: 152, height: 222)
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .overlay(
@@ -228,5 +269,5 @@ private struct FeaturedMovieCard: View {
 }
 
 #Preview {
-    Home()
+    Home(selectedTab: .constant(0))
 }

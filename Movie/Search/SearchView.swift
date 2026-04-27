@@ -10,7 +10,6 @@ import SwiftUI
 struct SearchView: View {
     @Binding var selectedTab: Int
     @State private var searchText = "Spiderman"
-    @State private var selectedMovie: MovieItem?
 
     private let allMovies: [MovieItem] = [
         MovieItem(
@@ -80,37 +79,34 @@ struct SearchView: View {
     }
 
     var body: some View {
-        TabBackground {
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 24) {
-                    Text("Search")
-                        .font(.system(size: 34, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.9))
+        NavigationStack {
+            TabBackground {
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 24) {
+                        Text("Search")
+                            .font(.system(size: 34, weight: .semibold, design: .rounded))
+                            .foregroundStyle(.white.opacity(0.9))
 
-                    VStack(alignment: .leading, spacing: 28) {
-                        topBar
-                        searchBar
-                        resultsList
+                        VStack(alignment: .leading, spacing: 28) {
+                            topBar
+                            searchBar
+                            resultsList
+                        }
+                        .padding(.horizontal, 28)
+                        .padding(.top, 26)
+                        .padding(.bottom, 40)
+                        .background(
+                            RoundedRectangle(cornerRadius: 34, style: .continuous)
+                                .fill(Color.moviePanel)
+                        )
                     }
-                    .padding(.horizontal, 28)
-                    .padding(.top, 26)
-                    .padding(.bottom, 40)
-                    .background(
-                        RoundedRectangle(cornerRadius: 34, style: .continuous)
-                            .fill(Color.moviePanel)
-                    )
+                    .padding(.horizontal, 18)
+                    .padding(.top, 10)
+                    .padding(.bottom, 30)
                 }
-                .padding(.horizontal, 18)
-                .padding(.top, 10)
-                .padding(.bottom, 30)
             }
         }
-        .fullScreenCover(item: $selectedMovie) { movie in
-            DetailView(movie: movie) {
-                selectedMovie = nil
-                selectedTab = 0
-            }
-        }
+        .navigationBarHidden(true)
     }
 
     private var topBar: some View {
@@ -176,8 +172,8 @@ struct SearchView: View {
                 emptyState
             } else {
                 ForEach(filteredMovies) { movie in
-                    Button {
-                        selectedMovie = movie
+                    NavigationLink {
+                        DetailView(movie: movie, selectedAppTab: $selectedTab)
                     } label: {
                         SearchMovieRow(movie: movie)
                     }
@@ -242,9 +238,7 @@ private struct SearchMovieRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
-            Image(movie.imageName)
-                .resizable()
-                .scaledToFill()
+            MoviePosterView(movie: movie)
                 .frame(width: 94, height: 116)
                 .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                 .overlay(

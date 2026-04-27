@@ -14,7 +14,7 @@ struct FancySegmentControl: View {
     @Namespace private var underline
 
     var body: some View {
-        HStack(spacing: 24) {
+        HStack(spacing: 8) {
             ForEach(tabs, id: \.self) { tab in
                 Button {
                     withAnimation(.spring(response: 0.32, dampingFraction: 0.8)) {
@@ -25,6 +25,9 @@ struct FancySegmentControl: View {
                         Text(tab)
                             .font(.system(size: 15, weight: selectedTab == tab ? .semibold : .medium, design: .rounded))
                             .foregroundStyle(selectedTab == tab ? .white : .white.opacity(0.7))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.72)
+                            .frame(maxWidth: .infinity)
 
                         ZStack {
                             if selectedTab == tab {
@@ -39,6 +42,7 @@ struct FancySegmentControl: View {
                             }
                         }
                     }
+                    .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.plain)
             }

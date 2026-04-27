@@ -11,6 +11,7 @@ import SwiftUI
 
 struct MainView: View {
     @State private var selectedTab = 0
+    @StateObject private var watchListStore = WatchListStore()
 
     init() {
         let appearance = UITabBarAppearance()
@@ -60,7 +61,7 @@ struct MainView: View {
     }
     var body: some View {
         TabView(selection: $selectedTab) {
-            Home()
+            Home(selectedTab: $selectedTab)
                 .tag(0)
                 .tabItem {
                     Label("Home", systemImage: "house.fill")
@@ -72,13 +73,14 @@ struct MainView: View {
                     Label("Search", systemImage: "magnifyingglass")
                 }
 
-            WatchList()
+            WatchList(selectedTab: $selectedTab)
                 .tag(2)
                 .tabItem {
                     Label("Watch list", systemImage: "bookmark")
                 }
         }
         .tint(Color.movieAccent)
+        .environmentObject(watchListStore)
     }
 }
 
