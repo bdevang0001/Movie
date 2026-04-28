@@ -10,6 +10,14 @@ import SwiftUI
 struct WatchList: View {
     @Binding var selectedTab: Int
     @EnvironmentObject private var watchListStore: WatchListStore
+    @StateObject private var viewModel: WatchListViewModel
+
+    init(selectedTab: Binding<Int>, watchListStore: WatchListStore? = nil) {
+        self._selectedTab = selectedTab
+        // In actual usage, the store will be passed or retrieved from environment
+        // For simplicity in the view, we can use a StateObject that we initialize in the body or init
+        self._viewModel = StateObject(wrappedValue: WatchListViewModel(watchListStore: watchListStore ?? WatchListStore()))
+    }
 
     var body: some View {
         TabBackground {
@@ -17,11 +25,11 @@ struct WatchList: View {
                 VStack(alignment: .leading, spacing: 0) {
                     topBar
 
-                    if watchListStore.movies.isEmpty {
+                    if viewModel.movies.isEmpty {
                         emptyState
                     } else {
                         VStack(alignment: .leading, spacing: 28) {
-                            ForEach(watchListStore.movies) { movie in
+                            ForEach(viewModel.movies) { movie in
                                 WatchListRow(movie: movie)
                             }
                         }

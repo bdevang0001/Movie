@@ -73,10 +73,10 @@ struct MainView: View {
                     Label("Search", systemImage: "magnifyingglass")
                 }
 
-            WatchList(selectedTab: $selectedTab)
+            PeopleView(selectedTab: $selectedTab)
                 .tag(2)
                 .tabItem {
-                    Label("Watch list", systemImage: "bookmark")
+                    Label("People", systemImage: "person.2.fill")
                 }
         }
         .tint(Color.movieAccent)

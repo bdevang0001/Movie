@@ -9,74 +9,7 @@ import SwiftUI
 
 struct SearchView: View {
     @Binding var selectedTab: Int
-    @State private var searchText = "Spiderman"
-
-    private let allMovies: [MovieItem] = [
-        MovieItem(
-            title: "Spiderman",
-            rating: "9.5",
-            genre: "Action",
-            year: "2019",
-            duration: "139 minutes",
-            imageName: "capsicum",
-            backdropName: "capsicum",
-            overview: "Peter Parker balances his student life with the responsibility of protecting New York from dangerous new threats."
-        ),
-        MovieItem(
-            title: "Spider-Man No Way Home",
-            rating: "9.5",
-            genre: "Action",
-            year: "2021",
-            duration: "148 Minutes",
-            imageName: "tree",
-            backdropName: "tree",
-            overview: "Peter Parker seeks Doctor Strange's help after his identity is exposed, but the spell fractures the multiverse and unleashes chaos."
-        ),
-        MovieItem(
-            title: "Doctor Strange",
-            rating: "8.1",
-            genre: "Fantasy",
-            year: "2022",
-            duration: "126 Minutes",
-            imageName: "chilli",
-            backdropName: "chilli",
-            overview: "Doctor Strange navigates new dimensions and impossible odds while confronting a force that threatens reality itself."
-        ),
-        MovieItem(
-            title: "Avengers Endgame",
-            rating: "9.0",
-            genre: "Adventure",
-            year: "2019",
-            duration: "181 Minutes",
-            imageName: "tree",
-            backdropName: "tree",
-            overview: "The Avengers gather one last time to undo their greatest defeat and restore hope to the universe."
-        ),
-        MovieItem(
-            title: "Jurassic World",
-            rating: "7.8",
-            genre: "Sci-Fi",
-            year: "2022",
-            duration: "147 Minutes",
-            imageName: "capsicum",
-            backdropName: "capsicum",
-            overview: "Humans and dinosaurs must coexist in a world forever changed by scientific ambition and prehistoric power."
-        )
-    ]
-
-    private var filteredMovies: [MovieItem] {
-        let query = normalized(searchText)
-
-        if query.isEmpty {
-            return allMovies
-        }
-
-        return allMovies.filter { movie in
-            normalized(movie.title).contains(query)
-                || normalized(movie.genre).contains(query)
-                || movie.year.contains(query)
-        }
-    }
+    @StateObject private var viewModel = SearchViewModel()
 
     var body: some View {
         NavigationStack {
@@ -139,12 +72,12 @@ struct SearchView: View {
     private var searchBar: some View {
         HStack(spacing: 12) {
             ZStack(alignment: .leading) {
-                if searchText.isEmpty {
+                if viewModel.searchText.isEmpty {
                     Text("Search")
                         .foregroundColor(Color.white.opacity(0.35))
                 }
 
-                TextField("", text: $searchText)
+                TextField("", text: $viewModel.searchText)
                     .foregroundColor(.white)
                     .accentColor(Color.movieAccent)
             }
@@ -168,10 +101,10 @@ struct SearchView: View {
 
     private var resultsList: some View {
         VStack(alignment: .leading, spacing: 28) {
-            if filteredMovies.isEmpty {
+            if viewModel.filteredMovies.isEmpty {
                 emptyState
             } else {
-                ForEach(filteredMovies) { movie in
+                ForEach(viewModel.filteredMovies) { movie in
                     NavigationLink {
                         DetailView(movie: movie, selectedAppTab: $selectedTab)
                     } label: {
@@ -223,13 +156,6 @@ struct SearchView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 120)
-    }
-
-    private func normalized(_ value: String) -> String {
-        value
-            .lowercased()
-            .replacingOccurrences(of: "-", with: "")
-            .replacingOccurrences(of: " ", with: "")
     }
 }
 
